@@ -99,6 +99,8 @@
         .btn-success { background: var(--primary-green); }
         .btn-secondary { background: #7f8c8d; box-shadow: none; margin-top: 15px; }
         .btn-secondary:hover { background: #95a5a6; }
+        .btn-danger-outline { background: #e2e8f0; color: #555; box-shadow: none; margin-top: 10px; border: 1px solid #cbd5e0; }
+        .btn-danger-outline:hover { background: #edf2f7; color: #333; }
         
         #profile-section, #voting-section, #winners-section { 
             display: none; 
@@ -170,11 +172,10 @@
         <h2>بوابة المؤتمر الوطني الإلكترونية</h2>
     </div>
 
-    <!-- 1. شاشة تسجيل الدخول بالتسمية الجديدة -->
+    <!-- 1. شاشة تسجيل الدخول -->
     <div id="login-section" class="section-panel">
         <h3 style="text-align: center; color: var(--dark-slate); margin-top: 0;">تسجيل دخول المندوبين</h3>
         <div class="form-group">
-            <!-- تم تعديل هذه التسمية بناءً على طلبك -->
             <label>بيان العضوية للمؤتمر</label>
             <input type="text" id="member-id" class="input-field" placeholder="بيانات الدخول يتم عبر اعضاء اللجنة الوطنية">
         </div>
@@ -193,6 +194,9 @@
     <!-- 2. شاشة استكمال وتعديل البيانات الشخصية والنقابية -->
     <div id="profile-section" class="section-panel">
         <h3 style="text-align: center; color: var(--dark-slate); border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-top: 0;">استمارة تعديل وتأكيد بيانات المندوب</h3>
+        
+        <input type="hidden" id="p-voter-id">
+
         <div class="form-group"><label>الاســم واللقــب (بالعربية)</label><input type="text" id="p-name" class="input-field"></div>
         <div class="form-group"><label>NOM ET PRENOM (بالفرنسية)</label><input type="text" id="p-nomPrenomFr" class="input-field"></div>
         <div class="form-group"><label>الولاية</label><input type="text" id="p-province" class="input-field" readonly style="background: #edf2f7; color: #718096; font-weight: bold;"></div>
@@ -209,7 +213,12 @@
         <div class="form-group"><label>مادة التدريس (بالنسبة للأساتذة)</label><input type="text" id="p-subject" class="input-field"></div>
         <div class="form-group"><label>رقم الهاتف 01</label><input type="text" id="p-phone1" class="input-field"></div>
         <div class="form-group"><label>رقم الهاتف 02 (إن وجد)</label><input type="text" id="p-phone2" class="input-field"></div>
-        <button class="btn-primary btn-success" id="save-profile-btn" onclick="saveProfile()">حفظ البيانات والانتقال للتصويت</button>
+        
+        <!-- زر الحفظ العادي والانتقال للتصويت -->
+        <button class="btn-primary btn-success" id="save-profile-btn" onclick="saveProfile(false)">حفظ البيانات والانتقال للتصويت</button>
+        
+        <!-- زر الحفظ والخروج الفوري الجديد للمندوبين الراغبين بالتعديل فقط -->
+        <button class="btn-primary btn-danger-outline" id="save-exit-btn" onclick="saveProfile(true)">حفظ التعديلات الشخصية فقط وتسجيل الخروج</button>
     </div>
 
     <!-- 3. شاشة التصويت الانتخابي المطور -->
@@ -288,6 +297,8 @@
     function showProfileScreen() {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('profile-section').style.display = 'block';
+        
+        document.getElementById('p-voter-id').value = loggedInUser.id;
         document.getElementById('p-name').value = loggedInUser.name;
         document.getElementById('p-province').value = loggedInUser.province;
         document.getElementById('p-unionRole').value = loggedInUser.unionRole;
@@ -306,21 +317,64 @@
         document.getElementById('p-phone2').value = loggedInUser.phone2;
     }
 
-    async function saveProfile() {
+    // تعديل الدالة لاستقبال متغير يحدد ما إذا كان المندوب يريد الخروج فقط بعد التعديل
+    async function saveProfile(shouldExitOnly) {
+        const voterIdValue = document.getElementById('p-voter-id').value.trim();
+        if (!voterIdValue) {
+            alert("خطأ حرج: لم يتم العثور على معرّف بيان العضوية! يرجى إعادة تسجيل الدخول.");
+            location.reload();
+            return;
+        }
+
         const saveBtn = document.getElementById('save-profile-btn');
-        saveBtn.innerText = "جاري الحفظ في جدول الإكسيل..."; saveBtn.disabled = true;
+        const exitBtn = document.getElementById('save-exit-btn');
+        saveBtn.disabled = true;
+        exitBtn.disabled = true;
+        saveBtn.innerText = "جاري الحفظ في جدول الإكسيل...";
+        
         const profileData = {
-            action: "updateProfile", voterId: loggedInUser.id, name: document.getElementById('p-name').value.trim(), province: document.getElementById('p-province').value.trim(), unionRole: document.getElementById('p-unionRole').value.trim(), gender: document.getElementById('p-gender').value, nomPrenomFr: document.getElementById('p-nomPrenomFr').value.trim(), birthDate: document.getElementById('p-birthDate').value, birthPlace: document.getElementById('p-birthPlace').value.trim(), fatherName: document.getElementById('p-fatherName').value.trim(), motherName: document.getElementById('p-motherName').value.trim(), address: document.getElementById('p-address').value.trim(), hireDate: document.getElementById('p-hireDate').value, rank: document.getElementById('p-rank').value.trim(), workPlace: document.getElementById('p-workPlace').value.trim(), subject: document.getElementById('p-subject').value.trim(), phone1: document.getElementById('p-phone1').value.trim(), phone2: document.getElementById('p-phone2').value.trim()
+            action: "updateProfile", 
+            voterId: voterIdValue, 
+            name: document.getElementById('p-name').value.trim(), 
+            province: document.getElementById('p-province').value.trim(), 
+            unionRole: document.getElementById('p-unionRole').value.trim(), 
+            gender: document.getElementById('p-gender').value, 
+            nomPrenomFr: document.getElementById('p-nomPrenomFr').value.trim(), 
+            birthDate: document.getElementById('p-birthDate').value, 
+            birthPlace: document.getElementById('p-birthPlace').value.trim(), 
+            fatherName: document.getElementById('p-fatherName').value.trim(), 
+            motherName: document.getElementById('p-motherName').value.trim(), 
+            address: document.getElementById('p-address').value.trim(), 
+            hireDate: document.getElementById('p-hireDate').value, 
+            rank: document.getElementById('p-rank').value.trim(), 
+            workPlace: document.getElementById('p-workPlace').value.trim(), 
+            subject: document.getElementById('p-subject').value.trim(), 
+            phone1: document.getElementById('p-phone1').value.trim(), 
+            phone2: document.getElementById('p-phone2').value.trim()
         };
         try {
             const response = await fetch(webAppUrl, { method: 'POST', body: JSON.stringify(profileData) });
             const result = await response.json();
             if (result.status === "success") {
-                alert(result.message); loggedInUser.name = profileData.name;
-                if (loggedInUser.hasVoted) { alert("لقد صوّت سابقا، تم حفظ بياناتك الشخصية بنجاح بنظام المؤتمر وسيتم خروجك الآن."); location.reload(); } 
-                else { showVotingScreen(); }
-            } else { alert(result.message); saveBtn.disabled = false; }
-        } catch (error) { alert("خطأ في الاتصال بالسيرفر."); saveBtn.disabled = false; }
+                alert(result.message); 
+                loggedInUser.name = profileData.name;
+                
+                // إذا اختار المندوب التعديل والخروج فقط، أو إذا كان قد صوّت سابقاً، نقوم بعمل خروج تلقائي له
+                if (shouldExitOnly || loggedInUser.hasVoted) {
+                    location.reload(); 
+                } else {
+                    showVotingScreen();
+                }
+            } else { 
+                alert(result.message); 
+                saveBtn.disabled = false; exitBtn.disabled = false;
+                saveBtn.innerText = "حفظ البيانات والانتقال للتصويت";
+            }
+        } catch (error) { 
+            alert("خطأ في الاتصال بالسيرفر."); 
+            saveBtn.disabled = false; exitBtn.disabled = false;
+            saveBtn.innerText = "حفظ البيانات والانتقال للتصويت";
+        }
     }
 
     async function showVotingScreen() {
@@ -333,7 +387,7 @@
             const response = await fetch(webAppUrl, { method: 'POST', body: JSON.stringify({ action: "getProvinceCandidates", province: loggedInUser.province }) });
             const result = await response.json();
             if(result.status === "success") { provinceCandidates = result.candidates; document.getElementById('loading-candidates').style.display = 'none'; renderCandidates(); }
-        } catch(e) { alert("خطأ في تحميل قائمة المرشحين."); }
+        } catch(e) { alert("خطأ في تحميل قائمةmathbf المرشحين."); }
     }
 
     function renderCandidates() {
@@ -355,7 +409,8 @@
         if (selectedCandidates.length === 0) { alert("الرجاء اختيار مرشح واحد على الأقل قبل التأكيد لإرسال الصندوق."); return; }
         const btn = document.getElementById('submit-votes'); btn.innerText = "جاري إرسال وتأمين تصويتك بالخادم..."; btn.disabled = true;
         try {
-            const response = await fetch(webAppUrl, { method: 'POST', body: JSON.stringify({ action: "submitVote", voterId: loggedInUser.id, voterName: loggedInUser.name, province: loggedInUser.province, votes: selectedCandidates.join(" ، ") }) });
+            const voterIdValue = document.getElementById('p-voter-id').value.trim();
+            const response = await fetch(webAppUrl, { method: 'POST', body: JSON.stringify({ action: "submitVote", voterId: voterIdValue, voterName: loggedInUser.name, province: loggedInUser.province, votes: selectedCandidates.join(" ، ") }) });
             const result = await response.json();
             if (result.status === "success") { alert(result.message); location.reload(); } 
             else { alert(result.message); btn.disabled = false; btn.innerText = "تأكيد وإرسال التصويت النهائي"; }
