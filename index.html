@@ -170,10 +170,12 @@
         <h2>بوابة المؤتمر الوطني الإلكترونية</h2>
     </div>
 
+    <!-- 1. شاشة تسجيل الدخول بالتسمية الجديدة -->
     <div id="login-section" class="section-panel">
         <h3 style="text-align: center; color: var(--dark-slate); margin-top: 0;">تسجيل دخول المندوبين</h3>
         <div class="form-group">
-            <label>رقم العضوية</label>
+            <!-- تم تعديل هذه التسمية بناءً على طلبك -->
+            <label>بيان العضوية للمؤتمر</label>
             <input type="text" id="member-id" class="input-field" placeholder="بيانات الدخول يتم عبر اعضاء اللجنة الوطنية">
         </div>
         <div class="form-group">
@@ -188,6 +190,7 @@
         <div id="loading-data" style="display:none; margin-top:15px; text-align:center; color: var(--primary-green); font-weight: bold;">جاري التحقق من الحساب جلب البيانات الشخصية...</div>
     </div>
 
+    <!-- 2. شاشة استكمال وتعديل البيانات الشخصية والنقابية -->
     <div id="profile-section" class="section-panel">
         <h3 style="text-align: center; color: var(--dark-slate); border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-top: 0;">استمارة تعديل وتأكيد بيانات المندوب</h3>
         <div class="form-group"><label>الاســم واللقــب (بالعربية)</label><input type="text" id="p-name" class="input-field"></div>
@@ -209,6 +212,7 @@
         <button class="btn-primary btn-success" id="save-profile-btn" onclick="saveProfile()">حفظ البيانات والانتقال للتصويت</button>
     </div>
 
+    <!-- 3. شاشة التصويت الانتخابي المطور -->
     <div id="voting-section" class="section-panel" style="border-top-color: var(--primary-red);">
         <div id="quota-alert-box">
             <h3 id="welcome-name" style="margin-top: 0; color: var(--dark-slate);">مرحباً</h3>
@@ -219,6 +223,7 @@
         <button id="submit-votes" class="btn-primary" style="background: var(--primary-red);">تأكيد وإرسال التصويت النهائي</button>
     </div>
 
+    <!-- 4. شاشة عرض الفائزين بالمجلس الوطني -->
     <div id="winners-section" class="section-panel" style="border-top-color: var(--gold-winner);">
         <h3 style="text-align: center; color: var(--dark-slate); margin-top: 0; margin-bottom: 20px;">🏆 قائمة الفائزين بعضوية المجلس الوطني حسب الولايات</h3>
         <div id="winners-loading" style="text-align:center; font-weight:bold; color: var(--primary-green);">جاري معالجة الأصوات وفرز الفائزين حياً من السيرفر...</div>
@@ -246,7 +251,6 @@
     let selectedCandidates = [];
     let provinceCandidates = [];
 
-    // جافا سكريبت لتصفية التواريخ من أصفار الساعة الزائدة
     function formatCleanDate(dateStr) {
         if (!dateStr) return "";
         try {
@@ -266,7 +270,7 @@
     async function login() {
         const idInput = document.getElementById('member-id').value.trim();
         const pinInput = document.getElementById('member-pin').value.trim();
-        if(!idInput || !pinInput) { alert("الرجاء إدخال رقم العضوية والرمز السري."); return; }
+        if(!idInput || !pinInput) { alert("الرجاء إدخال بيان العضوية والرمز السري."); return; }
         const loginBtn = document.getElementById('login-btn');
         const loadingDiv = document.getElementById('loading-data');
         const errorDiv = document.getElementById('login-error');
@@ -348,7 +352,7 @@
     }
 
     document.getElementById('submit-votes').addEventListener('click', async () => {
-        if (selectedCandidates.length === 0) { alert("الرجاء اختيار مرشح واحد على الأقل."); return; }
+        if (selectedCandidates.length === 0) { alert("الرجاء اختيار مرشح واحد على الأقل قبل التأكيد لإرسال الصندوق."); return; }
         const btn = document.getElementById('submit-votes'); btn.innerText = "جاري إرسال وتأمين تصويتك بالخادم..."; btn.disabled = true;
         try {
             const response = await fetch(webAppUrl, { method: 'POST', body: JSON.stringify({ action: "submitVote", voterId: loggedInUser.id, voterName: loggedInUser.name, province: loggedInUser.province, votes: selectedCandidates.join(" ، ") }) });
