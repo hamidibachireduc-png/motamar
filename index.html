@@ -114,7 +114,7 @@
         <button class="btn-primary btn-secondary" onclick="goBackToLogin()">❌ إلغاء والتراجع</button>
     </div>
 
-    <!-- 5. صندوق مبلغ الانخراط (تم حذف 50 دج) -->
+    <!-- 5. صندوق مبلغ الانخراط -->
     <div id="fee-section" class="section-panel" style="border-top-color: var(--blue-navy);">
         <div class="info-notice">💰 <strong>جلسة التصويت على القيمة المالية:</strong> حدد مبلغ الانخراط المقترح للسنوات القادمة.</div>
         <h3 style="text-align: center; color: var(--blue-navy); margin-top: 0;">تحديد مبلغ الانخراط في النقابة</h3>
@@ -149,7 +149,7 @@
 </div>
 
 <script>
-    // ⚠️ ضع رابط الـ Web App الجديد الخاص بك هنا
+    // ⚠️ ضع رابط الـ Web App الجديد الخاص بك هنا بعد التحديث
     const webAppUrl = "https://script.google.com/macros/s/AKfycbwzHJwS24DONrgZjO3K-DqMBJ9XWwlf1jFgUwIXw1z1LWTrFee7WOiMRIudKRsNV62f/exec"; 
     
     const quotas = { "ادرار": { councilMembers: 2 }, "الشلف": { councilMembers: 2 }, "الاغواط": { councilMembers: 2 }, "ام البواقي": { councilMembers: 1 }, "باتنة": { councilMembers: 1 }, "بجاية": { councilMembers: 1 }, "بسكرة": { councilMembers: 1 }, "بشار": { councilMembers: 2 }, "البليدة": { councilMembers: 2 }, "البويرة": { councilMembers: 1 }, "تمنراست": { councilMembers: 1 }, "تبسة": { councilMembers: 4 }, "تلمسان": { councilMembers: 2 }, "تيارت": { councilMembers: 2 }, "تيزي وزو": { councilMembers: 1 }, "الجزائر شرق": { councilMembers: 2 }, "الجزائر غرب": { councilMembers: 1 }, "الجزائر وسط": { councilMembers: 2 }, "الجلفة": { councilMembers: 5 }, "سوق اهراس": { councilMembers: 4 }, "تيبازة": { councilMembers: 2 } };
@@ -335,7 +335,6 @@
 
     function showFeeVotingScreen() { document.getElementById('fee-section').style.display = 'block'; }
     
-    // 🗑️ تم حذف الخيار الخاص بـ 50 دج هنا
     function selectFee(value) {
         selectedFeeValue = value; document.querySelectorAll('.fee-card').forEach(card => card.classList.remove('selected'));
         if (value === '100 دج') document.getElementById('fee-100').classList.add('selected');
@@ -354,7 +353,7 @@
     async function showWinnersScreen() {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('loading-data').style.display = 'block';
-        document.getElementById('loading-data').innerText = 'جاري التحقق من صلاحية العرض...';
+        document.getElementById('loading-data').innerText = 'جاري التحقق من حالة الصناديق والفرز...';
 
         try {
             const response = await fetch(webAppUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "calculateWinners" }) });
@@ -367,7 +366,7 @@
                 
                 const flags = result.displayFlags || { council: "مغلق", sg: "مغلق", fee: "مغلق" };
 
-                // 1. عرض نتيجة الانخراط المفتوحة (تمت إزالة 50 دج)
+                // 1. عرض نتيجة الانخراط (بالأقفال)
                 if (flags.fee === "مفتوح") {
                     let feeCounts = { "200 دج": result.feeResults["200 دج"] || 0, "100 دج": result.feeResults["100 دج"] || 0 };
                     let feeHtml = '';
@@ -377,7 +376,7 @@
                     document.getElementById('fee-winner-display').innerHTML = '<div style="padding: 15px; text-align:center; color:#7f8c8d; font-weight:bold;">🔒 لم يتم التصريح بعرض نتيجة الانخراط بعد.</div>';
                 }
 
-                // 2. عرض نتائج الأمين العام المفتوحة
+                // 2. عرض نتائج الأمين العام (بالأقفال)
                 if (flags.sg === "مفتوح") {
                     let sgArray = []; for (const name in result.sgResults) { sgArray.push({ name: name, votes: result.sgResults[name] }); }
                     sgArray.sort((a, b) => b.votes - a.votes);
@@ -394,7 +393,7 @@
                     document.getElementById('sg-winner-display').innerHTML = '<div style="padding: 15px; text-align:center; color:#7f8c8d; font-weight:bold;">🔒 لم يتم التصريح بعرض نتائج الأمانة العامة بعد.</div>';
                 }
 
-                // 3. عرض نتائج المجلس المفتوحة
+                // 3. عرض نتائج المجلس (بالأقفال)
                 if (flags.council === "مفتوح") { renderWinners(result.results, result.birthDatesMap); } 
                 else { document.getElementById('winners-list-container').innerHTML = '<div style="padding: 20px; text-align:center; background:#edf2f7; border-radius:8px; color:#7f8c8d; font-weight:bold;">🔒 لم يتم التصريح بعرض المجلس الوطني بعد.</div>'; }
             }
