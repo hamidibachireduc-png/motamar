@@ -62,7 +62,7 @@
         <div id="loading-data" style="display:none; text-align:center; color: var(--primary-green); font-weight: bold; margin-top:10px;">جاري الاتصال والتحقق من الحساب...</div>
     </div>
 
-    <!-- 2. شاشة الاستمارة -->
+    <!-- 2. شاشة الاستمارة مع الحقول الجديدة الحساسة -->
     <div id="profile-section" class="section-panel">
         <div id="supervisor-notice-zone" class="supervisor-box" style="display:none;"></div>
         <h3 style="text-align: center; color: var(--dark-slate); border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-top: 0;">استمارة تأكيد وتحديث بيانات المندوب</h3>
@@ -73,6 +73,12 @@
         <div class="form-group"><label>NOM ET PRENOM (بالفرنسية)</label><input type="text" id="p-nomPrenomFr" class="input-field"></div>
         <div class="form-group"><label>الولاية</label><input type="text" id="p-province" class="input-field" readonly style="background:#edf2f7;"></div>
         <div class="form-group"><label>الصفة النقابية لحضور المؤتمر</label><input type="text" id="p-unionRole" class="input-field"></div>
+        
+        <!-- الحقول الجديدة الحساسة -->
+        <div class="form-group"><label>رقم بطاقة الانخراط</label><input type="text" id="p-membershipCard" class="input-field" placeholder="رقم البطاقة" style="border-color: var(--blue-navy);"></div>
+        <div class="form-group"><label>رقم الضمان الاجتماعي</label><input type="text" id="p-socialSecurity" class="input-field" placeholder="رقم الضمان الاجتماعي" style="border-color: var(--blue-navy);"></div>
+        <div class="form-group"><label>رقم التعريف الوطني (NIN)</label><input type="text" id="p-nin" class="input-field" placeholder="NIN المُدون على بطاقة التعريف" style="border-color: var(--blue-navy);"></div>
+        
         <div class="form-group"><label>الجنس</label><select id="p-gender" class="input-field"><option value="ذكر">ذكر</option><option value="أنثى">أنثى</option></select></div>
         <div class="form-group"><label>تاريخ الميلاد</label><input type="date" id="p-birthDate" class="input-field"></div>
         <div class="form-group"><label>مكان الميلاد</label><input type="text" id="p-birthPlace" class="input-field"></div>
@@ -216,6 +222,11 @@
         document.getElementById('p-rank').value = loggedInUser.rank; document.getElementById('p-workPlace').value = loggedInUser.workPlace;
         document.getElementById('p-subject').value = loggedInUser.subject; document.getElementById('p-phone1').value = loggedInUser.phone1;
         document.getElementById('p-phone2').value = loggedInUser.phone2; document.getElementById('p-email').value = loggedInUser.email || "";
+        
+        // تعبئة البيانات الحساسة الجديدة إن وجدت
+        document.getElementById('p-membershipCard').value = loggedInUser.membershipCard || "";
+        document.getElementById('p-socialSecurity').value = loggedInUser.socialSecurity || "";
+        document.getElementById('p-nin').value = loggedInUser.nin || "";
     }
 
     function renderSupervisorNotice(userProvince) {
@@ -244,7 +255,11 @@
             motherName: document.getElementById('p-motherName').value.trim(), address: document.getElementById('p-address').value.trim(),
             hireDate: document.getElementById('p-hireDate').value, rank: document.getElementById('p-rank').value.trim(),
             workPlace: document.getElementById('p-workPlace').value.trim(), subject: document.getElementById('p-subject').value.trim(),
-            phone1: document.getElementById('p-phone1').value.trim(), phone2: document.getElementById('p-phone2').value.trim(), email: document.getElementById('p-email').value.trim()
+            phone1: document.getElementById('p-phone1').value.trim(), phone2: document.getElementById('p-phone2').value.trim(), email: document.getElementById('p-email').value.trim(),
+            // إرسال البيانات الحساسة الجديدة للسيرفر
+            membershipCard: document.getElementById('p-membershipCard').value.trim(),
+            socialSecurity: document.getElementById('p-socialSecurity').value.trim(),
+            nin: document.getElementById('p-nin').value.trim()
         };
 
         try {
